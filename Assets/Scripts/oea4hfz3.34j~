@@ -1,0 +1,74 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Match3 : MonoBehaviour
+{
+    [SerializeField] private Board _board;
+
+    private List<List<Node>> _matches;
+
+    private Vector2Int _size => new Vector2Int(_board.Nodes.GetLength(0), _board.Nodes.GetLength(1));
+
+ 
+    public bool TryFindMatches(out List<List<Node>> matches)
+    {
+        _matches = new List<List<Node>>();
+        for (int i = 0; i < _size.x; i++)
+        {
+            FindMatchesInRow(i);
+        }
+
+        for (int j = 0; j < _size.y; j++)
+        {
+            FindMatchesInColumn(j);
+        }
+
+        matches = new List<List<Node>>();
+        matches.AddRange(_matches);
+        foreach (var item in matches)
+            foreach(var item2 in item)
+            Debug.Log(item.Coordinates);
+        return matches.Count > 0;
+    }
+    private void FindMatchesInRow(int row)
+    {
+        List<Node> tempNodes = new List<Node>();
+        tempNodes.Add(_board.Nodes[row, 0]);
+        for (int j = 0; j < _size.y - 1; j++)
+        {
+            Node current = _board.Nodes[row, j];
+            Node next = _board.Nodes[row, j+1];
+            Match(current, next, ref tempNodes);
+        }
+    }
+
+    private void FindMatchesInColumn(int column)
+    {
+        List<Node> tempNodes = new List<Node>();
+        tempNodes.Add(_board.Nodes[0, column]);
+        for (int i = 0; i < _size.x - 1; i++)
+        {
+            Node current = _board.Nodes[i, column];
+            Node next = _board.Nodes[i + 1, column];
+            Match(current, next, ref tempNodes);
+        }
+    }
+
+    private void Match(Node current, Node next, ref List<Node> tempNodes)
+    {
+        if (next.Color == current.Color)
+        {
+            tempNodes.Add(next);
+        }
+        else
+        {
+            if (tempNodes.Count >= 3)
+            {
+                _matches.Add(tempNodes);
+            }
+            tempNodes.Clear();
+            tempNodes.Add(next);
+        }
+    }
+}

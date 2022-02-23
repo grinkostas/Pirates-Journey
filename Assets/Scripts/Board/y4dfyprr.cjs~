@@ -1,0 +1,115 @@
+using System.Collections;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine;
+
+
+
+public class Board : MonoBehaviour
+{
+    [SerializeField] private Grid _grid;
+    [SerializeField] private RectTransform _startPoint;
+    [SerializeField] private Vector2 _paddings;
+    [SerializeField] private List<Node> _nodesPrefabs;
+    [SerializeField] private Node _nodeEmpty;
+
+    private Vector2Int _size => _grid.Size;
+    private Node[,] _nodes;
+    public Node[,] Nodes => _nodes;
+
+    private void Awake()
+    {
+        _nodes = new Node[_size.x, _size.y];
+
+    }
+    private void Start()
+    {
+        FillBoard();
+    }
+
+    private void FillBoard()
+    {
+        for (int i = 0; i < _size.x; i++)
+        {
+            for (int j = 0; j < _size.y; j++)
+            {
+                if (_grid.GridNode[i, j].Type != NodeType.Empty)
+                {
+                    SpawnRandomNode(i, j);
+                }
+                else
+                {
+                    SpawnEmptyNode(i, j);
+                }
+            }
+        }
+    }
+
+    private void SpawnEmptyNode(int i, int j)
+    {
+        SpawnNode(_nodeEmpty, i, j);
+    }
+    private void SpawnRandomNode(int i, int j)
+    {
+        SpawnNode(GetRandomNode(i, j), i, j);
+    }
+
+    private void SpawnNode(Node node, int i, int j)
+    {
+        _nodes[i, j] = Instantiate(node, GetPosition(i, j), Quaternion.identity, transform);
+        _nodes[i, j].Coordinates = new Vector2Int(i, j);
+    }
+
+    private Vector3 GetPosition(int i, int j)
+    {
+        return new Vector3(_startPoint.transform.position.x -  j * _paddings.y, - i * _paddings.x, 0);
+    }
+
+    private Node GetRandomNode(int i, int j)
+    {
+        List<Node> avaliableNodes = new List<Node>(_nodesPrefabs);
+        if (i > 0)
+            avaliableNodes.Remove(_nodesPrefabs.Find(x => x.Color == _nodes[i - 1, j].Color));
+        if (j > 0)
+            avaliableNodes.Remove(_nodesPrefabs.Find(x => x.Color == _nodes[i, j - 1].Color));
+
+        int randomIndex = Random.Range(0, avaliableNodes.Count);
+        var resutl = avaliableNodes[randomIndex];
+
+        return resutl;
+    }
+
+
+    public void Swap(Node node1, Node node2)
+    {
+        node1.Swap(node2);
+        Node tempNode = _nodes[node1.X, node1.Y];
+
+        _nodes[node1.X, node1.Y] = _nodes[node2.X, node2.Y];
+        _nodes[node2.X, node2.Y] = tempNode;
+
+
+
+    }
+
+    public bool IsNearby(Node node1, Node node2)
+    {
+        Vector2Int coordinates = new Vector2Int(Mathf.Abs(node1.X - node2.X), Mathf.Abs(node1.Y - node2.Y));
+        if (coordinates.x + coordinates.y == 1)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void DestoyMatch(List<List<Node>> matches)
+    {
+        List<Node> nodes = matches.OrderBy(x=> x.Count).First();
+        foreach (var node in nodes)
+        {
+            _nodes[node.X, node.Y] = null;
+            Destroy(node.gameObject);
+        }
+    }    
+}

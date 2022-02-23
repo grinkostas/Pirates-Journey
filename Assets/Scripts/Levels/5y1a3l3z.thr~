@@ -1,0 +1,31 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class LevelView : MonoBehaviour
+{
+    [SerializeField] private Level _level;
+    [SerializeField] private LevelMenu _levelMenu;
+    [SerializeField] private CompletedLevel _completedLevel;
+    [SerializeField] private IncompletedLevel _incompletedLevel;
+
+    private void Start()
+    {
+        
+        
+    }
+
+    public void ButtonClick()
+    {
+        SaveSystem saveSystem = new SaveSystem();
+        if (_level.RequiredLevelToEnter != null)
+        {
+            var level = saveSystem.Data.Levels.Find(x=> (x.Id == _level.RequiredLevelToEnter.Id) && x.StarCount > 0);
+            if (level != null)
+            {
+
+            }
+        }
+        _levelMenu.Show(_level);
+    }
+}

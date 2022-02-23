@@ -1,0 +1,49 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Events;
+
+[RequireComponent(typeof(Button))]
+public class Node : MonoBehaviour
+{
+    [SerializeField] private NodeColor _color;
+    private Button _button;
+    public NodeColor Color => _color;
+    public Vector2Int Coordinates { get; set; }
+
+    public static UnityAction Click;
+
+    private void Awake()
+    {
+        _button = GetComponent<Button>();
+    }
+
+    private void OnEnable()
+    {
+        _button.onClick.AddListener(Click);
+    }
+
+    public static bool operator ==(Node node1, Node node2)
+    {
+        return node1.Color == node2.Color;
+    }
+    public static bool operator !=(Node node1, Node node2)
+    {
+        return !(node1 == node2);
+    }
+}
+
+public enum NodeColor
+{
+    Cat, 
+    Lizzard, 
+    Octopus, 
+    Owl, 
+    Pig,
+    Rabbit, 
+    RainbowCat, 
+    Sheep, 
+    Spider,
+    Empty
+}

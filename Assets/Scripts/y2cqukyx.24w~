@@ -1,0 +1,37 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class TurnsLimit : Limit
+{
+    [SerializeField] private int _maxTurns;
+    [SerializeField] private Text _turnesText;
+    [SerializeField] private Board _board;    
+
+    private int _currentTurns;
+
+    private void Start()
+    {
+        _turnesText.text = _maxTurns.ToString();
+
+        _board.SwapNode += OnSwapNode;
+    }
+
+    public override void StartLimit()
+    {
+        _currentTurns = _maxTurns;
+    }
+
+    private void OnSwapNode()
+    {
+        _currentTurns--;
+        _turnesText.text = _currentTurns.ToString();
+        if (_currentTurns == 0)
+        {
+            EndLimit?.Invoke();
+            _board.SwapNode -= OnSwapNode;
+        }
+    }
+
+}

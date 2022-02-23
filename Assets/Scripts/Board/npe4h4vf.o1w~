@@ -1,0 +1,308 @@
+using System.Collections;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine;
+
+
+[System.Serializable]
+public class NodesSetting
+{
+    public Transform StartPoint;
+    public Vector2 Paddings;
+    public List<Node> Prefabs;
+    public Node Empty;
+    public NodeFX Fx;
+}
+
+[System.Serializable]
+public class Deltas
+{
+    public float DestroyNodes;
+    [Tooltip("how many cells higher should the node spawn what would then fall")]
+    public int SpawnNode;
+}
+public class Board : MonoBehaviour
+{
+    [SerializeField] private Grid _grid;
+    [SerializeField] private Match3 _match3;
+    [SerializeField] private NodesSetting _settings;
+    [SerializeField] private Deltas _deltas;
+    [SerializeField] private BuffHandler _buffHadler;
+
+    private Vector2Int _size => _grid.Size;
+    private Node[,] _nodes;
+    public bool CanSwap { get; private set; }
+    public Node[,] Nodes => _nodes;
+
+    #region
+    private void Awake()
+    {
+        _nodes = new Node[_size.x, _size.y];
+        CanSwap = true;
+    }
+
+    private void Start()
+    {
+        FillBoard();
+    }
+    #endregion
+    
+    private void FillBoard()
+    {
+        for (int i = 0; i < _size.x; i++)
+        {
+            for (int j = 0; j < _size.y; j++)
+            {
+                if (_grid[i, j].Type != NodeType.Empty)
+                {                
+                    var spawnedNode = SpawnRandomNode(i, j);
+                    if (_grid[i, j].Modifier != null)
+                    {
+                        spawnedNode.SetModifier(_grid[i, j].Modifier);
+                    }
+                }
+                else
+                {
+                    SpawnEmptyNode(i, j);
+                }
+            }
+        }
+    }
+    
+    private void ReFillBoard()
+    {
+        for (int i = _size.x-1; i >= 0; i--)
+        {
+            for (int j = _size.y -1; j >= 0; j--)
+            {
+                if (_nodes[i, j] == null)
+                {
+                    ReFillNode(i, j);
+                }
+            }
+        }
+    }
+
+    private void ReFillNode(int i, int j)
+    {
+        if (i == 0)
+        {
+            SpawnRefilledNode(i, j);
+            return;
+        }
+        bool makeNull = true;
+        Node upperNode = null;
+        int xUpperNode = -1;
+        for (int x = i - 1; x >= 0; x--)
+        {
+            if (_nodes[x, j] != null && _nodes[x, j].Color != NodeColor.Empty)
+            {
+                upperNode = _nodes[x, j];
+                xUpperNode = x;
+                break;                            
+            }
+        }
+
+
+        if (upperNode == null)
+        {
+            int firstNotEmpty = -1;
+            for (int x = 0; x < _size.x; x++)
+            {
+                if (_nodes[x, j] == null)
+                {
+                    firstNotEmpty = x;
+                }
+            }
+            SpawnRefilledNode(i, j);
+            xUpperNode = firstNotEmpty;
+            upperNode = _nodes[xUpperNode, j];
+            makeNull = false;
+        }
+        if (upperNode != null)
+        {
+            if (upperNode.IsMovable() == false)
+            {
+                return;
+            }
+        }
+        
+
+        _settings.Fx.Move(upperNode, GetPosition(i, j));
+        _nodes[i, j] = _nodes[xUpperNode, j];
+        _nodes[i, j].Coordinates = new Vector2Int(i, j);
+        if (makeNull)
+        {
+            _nodes[xUpperNode, j] = null;
+        }
+         
+
+    }
+
+
+    private Node SpawnEmptyNode(int i, int j)
+    {
+        return SpawnNode(_settings.Empty, i, j);
+    }
+    private Node SpawnRandomNode(int i, int j, bool compareWithNearby = true)
+    {
+        return SpawnNode(GetRandomNode(i, j, compareWithNearby), i, j);
+    }
+
+    private Node SpawnRefilledNode(int i, int j)
+    {
+        SpawnRandomNode(i, j, false);
+
+        _nodes[i, j].transform.localPosition = GetPosition(_deltas.SpawnNode, j);
+        _settings.Fx.Move(_nodes[i, j], GetPosition(i, j));
+
+        return _nodes[i, j];
+    }
+    private Node SpawnNode(Node node, int i, int j)
+    {
+        _nodes[i, j] = Instantiate(node, transform);
+        _nodes[i, j].transform.localPosition = GetPosition(i, j);
+        _nodes[i, j].Coordinates = new Vector2Int(i, j);
+
+        return _nodes[i, j];
+    }
+
+    private Vector3 GetPosition(int i, int j)
+    {
+        return new Vector3(j * _settings.Paddings.y, -i * _settings.Paddings.x, 0);
+    }
+
+    private Node GetRandomNode(int i, int j, bool compareWithNearby = true)
+    {
+        List<Node> avaliableNodes = new List<Node>(_settings.Prefabs);
+        if (compareWithNearby)
+        {
+            if (i > 0)
+                avaliableNodes.Remove(_settings.Prefabs.Find(x => x.Color == _nodes[i - 1, j].Color));
+            if (j > 0)
+                avaliableNodes.Remove(_settings.Prefabs.Find(x => x.Color == _nodes[i, j - 1].Color));
+        }        
+
+        int randomIndex = Random.Range(0, avaliableNodes.Count);
+        var resutl = avaliableNodes[randomIndex];
+
+        return resutl;
+    }
+
+
+    private void TouchNearby(int i, int j)
+    {
+        List<Node> nodes = new List<Node>();
+        if (i > 0) nodes.Add(_nodes[i - 1, j]);
+        if (i < _size.x - 1) nodes.Add(_nodes[i + 1, j]);
+
+        if (j > 0) nodes.Add(_nodes[i, j - 1]);
+        if (j < _size.y - 1) nodes.Add(_nodes[i, j + 1]);
+
+
+        foreach (var node in nodes)
+        {            
+            if (node != null)                  
+                node.NearbyTouch();                
+        }
+    }
+
+    private List<Node> NodesTouchedByBuff(Node node)
+    {
+        if (node.Buff != null)
+        {
+            return node.Buff.NodesToTouch(node.X, node.Y, _nodes).ToList();
+        }
+        return null;
+    }
+
+    public void Swap(Node node1, Node node2)
+    {
+        node1.Swap(node2);
+        Node tempNode = _nodes[node1.X, node1.Y];
+
+        _nodes[node1.X, node1.Y] = _nodes[node2.X, node2.Y];
+        _nodes[node2.X, node2.Y] = tempNode;
+    }
+
+    public bool IsNearby(Node node1, Node node2)
+    {
+        Vector2Int coordinates = new Vector2Int(Mathf.Abs(node1.X - node2.X), Mathf.Abs(node1.Y - node2.Y));
+        if (coordinates.x + coordinates.y == 1)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    private IEnumerator TouchNodes(List<Node> match)
+    {
+        List<List<Node>> temp = new List<List<Node>>();
+        var buffForMatch = _buffHadler.GetBuffForMatch(match.Count);
+        
+        foreach (var node in match)
+        {
+            int indexer = 0;
+            if (node != null)
+            {
+                indexer++;
+                if (NodesTouchedByBuff(node) != null)
+                {
+                    temp.Add(NodesTouchedByBuff(node));
+                }
+                TouchNearby(node.X, node.Y);
+
+                if (buffForMatch != null && indexer == match.Count)
+                {
+                    node.SetBuff(buffForMatch);
+                    continue;
+                }
+
+                _nodes[node.X, node.Y] = node.Touch();
+                
+
+            }
+        }
+
+        foreach (var item in temp)
+        {
+            foreach (var node in item)
+            {
+                if (match.Contains(node) || node == null)
+                {
+                    continue;
+                }
+
+                _nodes[node.X, node.Y] = node.Touch();
+                TouchNearby(node.X, node.Y);
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+
+
+        yield return null;
+    }
+
+    public IEnumerator MatchesHandler()
+    {
+        CanSwap = false;
+        while (_match3.TryFindMatches(out var matches))
+        {
+            foreach (var match in matches)
+                yield return TouchNodes(match);
+
+            ReFillBoard();
+            yield return new WaitForSeconds(_deltas.DestroyNodes);
+        }
+        CanSwap = true;
+        yield return null;
+    }    
+
+    
+
+
+
+
+}

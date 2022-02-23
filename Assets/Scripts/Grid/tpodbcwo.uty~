@@ -1,0 +1,37 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Grid : MonoBehaviour
+{
+    [SerializeField] private Vector2Int _size;
+    public GridNode[,] GridNode { get; private set; }
+    public Vector2Int Size => _size;
+    private void Awake()
+    {
+        GetGridNode();
+    }
+   
+    private void GetGridNode()
+    {
+        GridNode = new GridNode[_size.x, _size.y];
+        GridNode[] gridNodes = GetComponentsInChildren<GridNode>();
+        for (int i = 0; i < _size.x; i++)
+        {
+            for (int j = 0; j < _size.y; j++)
+            {
+                GridNode[i, j] = gridNodes[i * _size.y + j];
+                Debug.Log(i + " " + j + " " + GridNode[i, j].ToString);
+            }
+        }
+    }
+
+    public GridNode this[int index, int index2]
+    {
+        get
+        {
+            return GridNode[index, index2];
+        }
+    }
+
+}

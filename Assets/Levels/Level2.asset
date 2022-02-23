@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 869f0cf2d2fe3144fb4c890f0fd18e2e, type: 3}
+  m_Name: Level2
+  m_EditorClassIdentifier: 
+  Id: 2
+  StarCount: 0
+  IsCompeleted: 0
+  RequiredLevelToEnter: {fileID: 11400000, guid: b39eb5cf3db591640bd8e7c342a1b1e6, type: 2}
+  Grid: {fileID: 1256708555455814516, guid: 9a39168c527da6543959b0504348c454, type: 3}
+  Goals:
+  - GoalItem: {fileID: 8080129006656121575, guid: 19b6a7f72e23eef419bbf512c87b12ce, type: 3}
+    RequiredCount: 5
+  - GoalItem: {fileID: 8764624457540684005, guid: fbdb801faf186f94c9873860c77d5faf, type: 3}
+    RequiredCount: 15
+  - GoalItem: {fileID: 5012794977657513259, guid: d2cabbff9d73db14395171717d27caa7, type: 3}
+    RequiredCount: 15
+  Rewards:
+  - Reward: {fileID: 4835983308119717975, guid: 55da4c1d75c32044fab8654ac922862c, type: 3}
+    Count: 200
+  LimitType: 0
+  LimitValue: 25

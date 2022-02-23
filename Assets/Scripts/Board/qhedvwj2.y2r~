@@ -1,0 +1,31 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Board : MonoBehaviour
+{
+    [SerializeField] private Grid _grid;
+    [SerializeField] private Node[] _nodes;
+    private Vector2Int _size => _grid.Size;
+
+    private void Start()
+    {
+        FillBoard();
+    }
+
+    private void FillBoard()
+    {
+        for (int i = 0; i < _size.x; i++)
+        {
+            for (int j = 0; j < _size.y; j++)
+            {
+                if (_grid[i, j].Type != NodeType.Empty)
+                {
+
+                }
+            }
+        }
+    }
+
+
+}

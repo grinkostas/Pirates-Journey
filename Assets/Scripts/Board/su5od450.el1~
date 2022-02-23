@@ -1,0 +1,156 @@
+using System.Collections;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine;
+
+
+[System.Serializable]
+public class NodesSetting
+{
+    public Transform StartPoint;
+    public Vector2 Paddings;
+    public List<Node> Prefabs;
+    public Node Empty;
+    public NodeFX Fx;
+}
+
+public class Board : MonoBehaviour
+{
+    [SerializeField] private Grid _grid;
+    [SerializeField] private NodesSetting _settings;
+
+    private Vector2Int _size => _grid.Size;
+    private Node[,] _nodes;
+    public Node[,] Nodes => _nodes;
+
+    private void Awake()
+    {
+        _nodes = new Node[_size.x, _size.y];
+
+    }
+    private void Start()
+    {
+        FillBoard();
+    }
+
+    private void FillBoard()
+    {
+        for (int i = 0; i < _size.x; i++)
+        {
+            for (int j = 0; j < _size.y; j++)
+            {
+                if (_grid[i, j].Type != NodeType.Empty)
+                {
+                
+                    SpawnRandomNode(i, j);
+                }
+                else
+                {
+                    SpawnEmptyNode(i, j);
+                }
+            }
+        }
+    }
+    
+    private void ReFillBoard()
+    {
+        for (int i = _size.x-1; i > 0; i--)
+        {
+            for (int j = _size.y -1; j >= 0; j--)
+            {
+                if (_nodes[i, j] == null)
+                {
+                    ReFillNode(i, j);
+                    return;
+                }
+            }
+        }
+    }
+
+    private void ReFillNode(int i, int j)
+    {
+        _nodes[i, j] = _nodes[i - 1, j];
+        _nodes[i, j].Coordinates = new Vector2Int(i, j);
+        _settings.Fx.Move(_nodes[i, j], GetPosition(i, j));
+
+    }
+
+
+    private void SpawnEmptyNode(int i, int j)
+    {
+        SpawnNode(_settings.Empty, i, j);
+    }
+    private void SpawnRandomNode(int i, int j)
+    {
+        SpawnNode(GetRandomNode(i, j), i, j);
+    }
+
+    private void SpawnNode(Node node, int i, int j)
+    {
+        _nodes[i, j] = Instantiate(node, transform);
+        _nodes[i, j].transform.localPosition = GetPosition(i, j);
+        _nodes[i, j].Coordinates = new Vector2Int(i, j);
+    }
+
+    private Vector3 GetPosition(int i, int j)
+    {
+        return new Vector3(j * _settings.Paddings.y, -i * _settings.Paddings.x, 0);
+    }
+
+    private Node GetRandomNode(int i, int j)
+    {
+        List<Node> avaliableNodes = new List<Node>(_settings.Prefabs);
+        if (i > 0)
+            avaliableNodes.Remove(_settings.Prefabs.Find(x => x.Color == _nodes[i - 1, j].Color));
+        if (j > 0)
+            avaliableNodes.Remove(_settings.Prefabs.Find(x => x.Color == _nodes[i, j - 1].Color));
+
+        int randomIndex = Random.Range(0, avaliableNodes.Count);
+        var resutl = avaliableNodes[randomIndex];
+
+        return resutl;
+    }
+
+
+    public void Swap(Node node1, Node node2)
+    {
+        node1.Swap(node2);
+        Node tempNode = _nodes[node1.X, node1.Y];
+
+        _nodes[node1.X, node1.Y] = _nodes[node2.X, node2.Y];
+        _nodes[node2.X, node2.Y] = tempNode;
+    }
+
+    public void SwapWithRemoved(Node node, int i, int j)
+    {
+        if (_nodes[i, j] == node)
+            return;
+
+        _settings.Fx.Move(node, GetPosition(i, j));
+        node.Coordinates = new Vector2Int(i, j);
+        _nodes[i, j] = node;
+
+    }
+
+    public bool IsNearby(Node node1, Node node2)
+    {
+        Vector2Int coordinates = new Vector2Int(Mathf.Abs(node1.X - node2.X), Mathf.Abs(node1.Y - node2.Y));
+        if (coordinates.x + coordinates.y == 1)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void DestoyMatch(List<List<Node>> matches)
+    {
+        var match = matches.OrderBy(x => x.Count).First();
+        foreach (var node in match)
+        {
+            _nodes[node.X, node.Y] = null;
+            Destroy(node.gameObject);
+        }
+        ReFillBoard();
+    }    
+}

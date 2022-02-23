@@ -1,0 +1,68 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+
+public class SaveSystem 
+{
+    private const string FILE_PATH = "/JSON/Save.json";
+    private string _path => Application.dataPath + FILE_PATH;
+
+    public SaveData Data;
+
+
+    private void CreateDefault()
+    {
+        Data = new SaveData();
+        Save();
+    }
+
+
+    public SaveSystem()
+    {
+        Load();
+    }
+
+    public void Save()
+    {
+        var json = JsonUtility.ToJson(Data);
+        File.WriteAllText(_path, json);
+    }
+
+    public void Load()
+    {
+        if (File.Exists(_path) == false)
+        {
+            File.Create(_path);
+            CreateDefault();
+        }
+        var json = File.ReadAllText(_path);
+        var data = JsonUtility.FromJson<SaveData>(json);
+        if (json.Length == 0)
+        {
+            CreateDefault();
+        }
+        else
+        {
+            Data = data;
+        }
+
+        if (Data.Levels == null)
+        {
+            Data.Levels = new List<CompletedLevels>();
+        }
+    }
+
+    private void AddBuster(NodeBuff buff
+        )
+    {
+        var busters = saveSystem.Data.Busters;
+        var buster = busters.Find(x => x.Id == _id);
+        if (buster == null)
+            busters.Add(new Buster(_id, 1));
+        else
+            buster.Count += 1;
+    }
+
+
+}

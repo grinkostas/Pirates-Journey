@@ -1,0 +1,27 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class SlotMachineColumn : MonoBehaviour
+{
+    [SerializeField] private Transform _startPostion;
+    [SerializeField] private int _count;
+    [SerializeField] private Slot _slotPrefab;
+    [SerializeField] private List<NodeBuff> _prizes;
+
+    private List<Slot> _spawnedSlots;
+    private Vector3 _spawnDelta;
+
+    private void Start()
+    {
+        _spawnDelta = Vector3.up * _slotPrefab.transform.position.y;
+        for (int i = 0; i < _count; i++)
+        {
+            Vector3 position = _startPostion.position + i * _spawnDelta;
+            var slot = Instantiate(_slotPrefab, position, Quaternion.identity, transform);
+            NodeBuff prize = _prizes[Random.Range(0, _prizes.Count)];
+            slot.Init(prize);
+        }
+    }
+
+}

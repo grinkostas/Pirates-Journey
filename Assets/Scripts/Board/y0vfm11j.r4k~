@@ -1,0 +1,63 @@
+using System.Collections;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Board : MonoBehaviour
+{
+    [SerializeField] private Grid _grid;
+    [SerializeField] private List<Node> _nodesPrefabs;
+    [SerializeField] private Node _nodeEmpty;
+    private Vector2Int _size => _grid.Size;
+    private Node[,] _nodes;
+
+    private void Awake()
+    {
+        _nodes = new Node[_size.x, _size.y];
+        
+    }
+    private void Start()
+    {
+        FillBoard();
+    }
+
+    private void FillBoard()
+    {
+        for (int i = 0; i < _size.x; i++)
+        {
+            for (int j = 0; j < _size.y; j++)
+            {
+                if (_grid[i, j].Type != NodeType.Empty)
+                {
+                    SpawnNode(i, j);
+                }
+                else
+                {
+                    SpawnEmpty(i, j);
+                }
+            }
+        }
+    }
+
+    private void SpawnEmpty(int i, int j)
+    {
+        _nodes[i, j] = Instantiate(_nodeEmpty, transform);
+    }
+    private void SpawnNode(int i, int j)
+    {
+        _nodes[i, j] = Instantiate(GetRandomNode(), transform);
+    }
+
+    private Node GetRandomNode(int i, int j)
+    {
+        List<Node> avaliableNodes = new List<Node>(_nodesPrefabs);
+        if (i > 0)
+            avaliableNodes.Remove(_nodesPrefabs.Find(x => x.Color == _nodes[i, j].Color)); 
+        if (j > 0)
+            avaliableNodes.Remove(_nodesPrefabs.Find(x => x.Color == _nodes[i, j].Color));
+
+
+    }
+
+
+}

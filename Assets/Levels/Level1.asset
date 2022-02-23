@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 869f0cf2d2fe3144fb4c890f0fd18e2e, type: 3}
+  m_Name: Level1
+  m_EditorClassIdentifier: 
+  Id: 1
+  StarCount: 0
+  IsCompeleted: 0
+  RequiredLevelToEnter: {fileID: 0}
+  Grid: {fileID: 1256708555455814516, guid: 62acb5b6775916a4ebda423fe4416a8d, type: 3}
+  Goals:
+  - GoalItem: {fileID: 1919842095204226799, guid: 5ac5cec8915f9184581fffcd8ea3d092, type: 3}
+    RequiredCount: 10
+  - GoalItem: {fileID: 4839685796508990132, guid: b164e1f07a9627d4f8f338187560d306, type: 3}
+    RequiredCount: 10
+  Rewards:
+  - Reward: {fileID: 4835983308119717975, guid: 55da4c1d75c32044fab8654ac922862c, type: 3}
+    Count: 100
+  LimitType: 1
+  LimitValue: 60

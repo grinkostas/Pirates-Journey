@@ -1,0 +1,17 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class RewardView : MonoBehaviour
+{
+    [SerializeField] private Image _image;
+    [SerializeField] private Text _text;
+
+    public void Init(Reward reward)
+    {
+        gameObject.SetActive)_;
+        _image.sprite = reward.Sprite;
+        _text.text = reward.Text;
+    }
+}
